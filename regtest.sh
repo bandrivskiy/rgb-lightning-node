@@ -108,6 +108,16 @@ _sendtoaddress() {
     $BITCOIN_CLI sendtoaddress "$address" "$amount"
 }
 
+_start_bridge() {
+    if ! command -v node >/dev/null 2>&1; then
+        _die "node is not installed; cannot start local-node-bridge"
+    fi
+    node "$(dirname "$0")/local-node-bridge.js" &
+    BRIDGE_PID=$!
+    echo "local-node-bridge started (PID $BRIDGE_PID) on http://127.0.0.1:5000/execute"
+    echo "Set BITCOIN_NODE_ENDPOINT=http://127.0.0.1:5000/execute in the demo .env"
+}
+
 _help() {
     echo "$name [-h|--help]"
     echo "    show this help message"
@@ -117,6 +127,7 @@ _help() {
     echo "    wait for services to have completed startup,"
     echo "    create bitcoind wallet used for mining,"
     echo "    generate initial blocks"
+    echo "    (set VSS=1 to also start the local VSS server on :8081)"
     echo
     echo "$name stop"
     echo "    stop services and clean up"
@@ -126,6 +137,11 @@ _help() {
     echo
     echo "$name sendtoaddress <address> <amount>"
     echo "    send the requested amount to the specified bitcoin address"
+    echo
+    echo "$name bridge"
+    echo "    start the local HTTP bridge on port 5000 so the demo app can"
+    echo "    call mine/sendtoaddress/gettxout against the local regtest stack"
+    echo "    (set BITCOIN_NODE_ENDPOINT=http://127.0.0.1:5000/execute in .env)"
 }
 
 # cmdline arguments
@@ -148,6 +164,9 @@ case $1 in
         [ -n "$2" ] || _die "address is required"
         [ -n "$3" ] || _die "amount is required"
         _sendtoaddress "$2" "$3"
+        ;;
+    bridge)
+        _start_bridge
         ;;
     *)
         _die "unsupported argument \"$1\""
