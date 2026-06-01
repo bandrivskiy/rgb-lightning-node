@@ -4,6 +4,9 @@
 /dataldk0
 /dataldk1
 /dataldk2
+/data_faucet
+/data_lsp
+/data_peer_a
 /tmp
 
 # will have compiled files and executables

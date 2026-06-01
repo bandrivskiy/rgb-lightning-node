@@ -87,13 +87,15 @@ _start_services() {
     # optionally start VSS server
     if [ "${VSS:-}" = "1" ]; then
         echo "starting VSS server..."
+        # drop stale VSS containers (they can reference a removed network after down -v)
+        docker rm -f rgb-lightning-node-vss-postgres-1 rgb-lightning-node-vss-server-1 2>/dev/null || true
         $COMPOSE --profile vss up -d
         echo "VSS server available at http://localhost:8081/vss"
     fi
 }
 
 _stop_services() {
-    $COMPOSE down -v --remove-orphans
+    $COMPOSE --profile vss down -v --remove-orphans
     rm -rf data{core,index,ldk0,ldk1,ldk2} 2>/dev/null || sudo rm -rf data{core,index,ldk0,ldk1,ldk2}
 }
 
